@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.warehouse.mapper.GoodsMapper">
+
+    <update id="inbound">
+        UPDATE `goods` SET type = type + #{count} WHERE id = #{goodsId}
+    </update>
+
+    <update id="outbound">
+        UPDATE `goods` SET type = type - #{count} WHERE id = #{goodsId} AND type >= #{count}
+    </update>
+
+    <select id="getCount" resultType="int">
+        SELECT type FROM `goods` WHERE id = #{id}
+    </select>
+
+</mapper>

@@ -1,0 +1,11 @@
+-- 重置 goods 表的 AUTO_INCREMENT
+USE warehouse;
+ALTER TABLE `goods` AUTO_INCREMENT = 21;
+
+-- 重置其他表的 AUTO_INCREMENT（如果需要）
+ALTER TABLE `user` AUTO_INCREMENT = 1;
+ALTER TABLE `storage` AUTO_INCREMENT = 1;
+ALTER TABLE `record` AUTO_INCREMENT = 1;
+
+-- 检查当前 AUTO_INCREMENT 值
+SHOW TABLE STATUS WHERE Name = 'goods';

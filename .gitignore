@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+backend/target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Build output
+frontend/dist/
+backend/*.jar
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.local
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+
+# Database
+*.db
+*.sqlite
