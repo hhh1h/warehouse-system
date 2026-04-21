@@ -7,7 +7,7 @@
         </el-form-item>
         <el-form-item label="商品条码">
           <el-input v-model="form.barcode" placeholder="请输入商品条码(选填)">
-            <el-button slot="append" icon="el-icon-scanner" @click="showQRCodeDialog" :disabled="!form.barcode">生成二维码</el-button>
+            <el-button slot="append" icon="el-icon-scanner" @click="generateQRCode" :disabled="!form.barcode">生成二维码</el-button>
           </el-input>
         </el-form-item>
         <el-form-item label="仓库" prop="storage">
@@ -56,9 +56,11 @@
       <el-table-column prop="remark" label="仓库"></el-table-column>
       <el-table-column prop="type" label="库存"></el-table-column>
       <el-table-column prop="barcode" label="条码"></el-table-column>
-      <el-table-column label="操作" width="250">
+      <el-table-column label="操作" width="300">
         <template slot-scope="scope">
           <el-button type="text" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button type="text" style="color: #67C23A" @click="openInOutDialog(scope.row, 'inbound')">入库</el-button>
+          <el-button type="text" style="color: #E6A23C" @click="openInOutDialog(scope.row, 'outbound')">出库</el-button>
           <el-button type="text" @click="handleDelete(scope.row.id)" style="color: #F56C6C">删除</el-button>
         </template>
       </el-table-column>
@@ -74,6 +76,30 @@
       :total="total"
       style="margin-top: 20px"
     ></el-pagination>
+
+    <!-- 入库/出库对话框 -->
+    <el-dialog :title="inOutDialogTitle" :visible.sync="inOutDialogVisible" width="400px">
+      <el-form :model="inOutForm" ref="inOutFormRef">
+        <el-form-item label="商品">
+          <span>{{ inOutForm.goodsName }}</span>
+        </el-form-item>
+        <el-form-item label="当前库存">
+          <span>{{ inOutForm.currentCount }}</span>
+        </el-form-item>
+        <el-form-item label="操作数量" prop="count">
+          <el-input-number v-model="inOutForm.count" :min="1" :max="inOutDialogType === 'outbound' ? inOutForm.currentCount : 10000"></el-input-number>
+        </el-form-item>
+        <el-form-item label="操作后库存">
+          <span :style="{ color: inOutDialogType === 'inbound' ? '#67C23A' : '#E6A23C' }">
+            {{ inOutDialogType === 'inbound' ? (inOutForm.currentCount + inOutForm.count) : (inOutForm.currentCount - inOutForm.count) }}
+          </span>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="inOutDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmInOut">{{ inOutDialogType === 'inbound' ? '确认入库' : '确认出库' }}</el-button>
+      </span>
+    </el-dialog>
 
     <!-- 二维码对话框 -->
     <el-dialog
@@ -146,6 +172,15 @@ export default {
       qrCodeVisible: false,
       currentGoods: {},
       importDialogVisible: false,
+      // 入库/出库相关
+      inOutDialogVisible: false,
+      inOutDialogType: 'inbound',
+      inOutForm: {
+        goodsId: null,
+        goodsName: '',
+        currentCount: 0,
+        count: 1
+      },
       rules: {
         name: [
           { required: true, message: '请输入商品名称', trigger: 'blur' }
@@ -157,6 +192,11 @@ export default {
           { required: true, message: '请输入库存数量', trigger: 'blur' }
         ]
       }
+    }
+  },
+  computed: {
+    inOutDialogTitle() {
+      return this.inOutDialogType === 'inbound' ? '商品入库' : '商品出库'
     }
   },
   mounted() {
@@ -265,30 +305,55 @@ export default {
       this.pageNum = val
       this.load()
     },
-    showQRCodeDialog(row) {
-      if (typeof row === 'object') {
-        this.currentGoods = row
-      } else {
-        this.currentGoods = this.form
+    // 入库/出库
+    openInOutDialog(row, type) {
+      this.inOutDialogType = type
+      this.inOutForm = {
+        goodsId: row.id,
+        goodsName: row.name,
+        currentCount: row.type || 0,
+        count: 1
       }
-
-      if (!this.currentGoods.barcode) {
+      this.inOutDialogVisible = true
+    },
+    confirmInOut() {
+      const params = {
+        goodsId: this.inOutForm.goodsId,
+        count: this.inOutForm.count,
+        user: localStorage.getItem('username') || 'admin'
+      }
+      
+      const api = this.inOutDialogType === 'inbound' ? '/goods/inbound' : '/goods/outbound'
+      
+      request.post(api, params).then(() => {
+        this.$message.success(this.inOutDialogType === 'inbound' ? '入库成功' : '出库成功')
+        this.inOutDialogVisible = false
+        this.load()
+      }).catch(err => {
+        this.$message.error(err.message || '操作失败')
+      })
+    },
+    generateQRCode() {
+      if (!this.form.barcode) {
         this.$message.warning('请先设置商品条码')
         return
       }
-
+      
+      this.currentGoods = { ...this.form }
       this.qrCodeVisible = true
       this.$nextTick(() => {
         const qrcodeContainer = this.$refs.qrcode
-        qrcodeContainer.innerHTML = ''
-        QRCode.toCanvas(this.currentGoods.barcode, { width: 200 }, (error, canvas) => {
-          if (error) {
-            console.error(error)
-            this.$message.error('生成二维码失败')
-          } else {
-            qrcodeContainer.appendChild(canvas)
-          }
-        })
+        if (qrcodeContainer) {
+          qrcodeContainer.innerHTML = ''
+          QRCode.toCanvas(this.form.barcode, { width: 200 }, (error, canvas) => {
+            if (error) {
+              console.error(error)
+              this.$message.error('生成二维码失败')
+            } else {
+              qrcodeContainer.appendChild(canvas)
+            }
+          })
+        }
       })
     },
     downloadTemplate() {

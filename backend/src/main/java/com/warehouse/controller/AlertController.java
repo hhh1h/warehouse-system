@@ -25,9 +25,9 @@ public class AlertController {
     private GoodsMapper goodsMapper;
 
     @GetMapping
-    public Result getAlerts(@RequestParam(defaultValue = "unread") String status) {
+    public Result getAlerts(@RequestParam(required = false) String status) {
         QueryWrapper<Alert> queryWrapper = new QueryWrapper<>();
-        if ("unread".equals(status)) {
+        if (status != null && "unread".equals(status)) {
             queryWrapper.eq("status", "unread");
         }
         queryWrapper.orderByDesc("create_time");

@@ -124,7 +124,7 @@ export default {
     },
     markAsRead(row) {
       request.put(`/alert/${row.id}/read`).then(() => {
-        this.$message.success('标记成功')
+        this.$message.success('已标记为已读，可在"所有预警"中查看')
         this.loadAlerts()
         this.loadUnreadCount()
       })
