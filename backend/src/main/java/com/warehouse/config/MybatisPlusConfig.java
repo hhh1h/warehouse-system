@@ -1,7 +1,6 @@
 package com.warehouse.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
@@ -31,6 +30,8 @@ public class MybatisPlusConfig {
         factory.setDataSource(dataSource);
         
         MybatisConfiguration configuration = new MybatisConfiguration();
+        // 开启驼峰命名转换 (goods_name -> goodsName)
+        configuration.setMapUnderscoreToCamelCase(true);
         configuration.setDefaultEnumTypeHandler(com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler.class);
         factory.setConfiguration(configuration);
         
