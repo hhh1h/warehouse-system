@@ -1,62 +1,55 @@
 <template>
-  <div class="ai-assistant">
-    <el-card class="chat-card">
-      <div slot="header" class="clearfix">
-        <span>🤖 AI 智能助手</span>
-        <el-button style="float: right; padding: 3px 10px" type="text" @click="clearChat">清空对话</el-button>
+  <div class="ai-assistant-dialog">
+    <!-- 消息列表 -->
+    <div class="chat-messages" ref="messagesContainer">
+      <div v-if="messages.length === 0" class="welcome-tip">
+        <p>👋 您好，我是仓库管理系统的AI助手</p>
+        <p>您可以问我：</p>
+        <ul>
+          <li>📦 "查询当前库存"</li>
+          <li>📊 "生成库存报表"</li>
+          <li>⚠️ "有哪些库存预警"</li>
+          <li>🏭 "仓库列表"</li>
+          <li>❓ "帮助"</li>
+        </ul>
       </div>
+      <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.type]">
+        <div class="message-avatar">
+          {{ msg.type === 'user' ? '👤' : '🤖' }}
+        </div>
+        <div class="message-content">
+          <div class="message-text" v-html="formatMessage(msg.content)"></div>
+          <div class="message-time">{{ msg.time }}</div>
+        </div>
+      </div>
+      <div v-if="loading" class="message bot">
+        <div class="message-avatar">🤖</div>
+        <div class="message-content">
+          <div class="message-text loading">
+            <span>思考中</span>
+            <span class="dot">.</span>
+            <span class="dot">.</span>
+            <span class="dot">.</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      <!-- 消息列表 -->
-      <div class="chat-messages" ref="messagesContainer">
-        <div v-if="messages.length === 0" class="welcome-tip">
-          <p>👋 您好，我是仓库管理系统的AI助手</p>
-          <p>您可以问我：</p>
-          <ul>
-            <li>📦 "查询当前库存"</li>
-            <li>📊 "生成库存报表"</li>
-            <li>⚠️ "有哪些库存预警"</li>
-            <li>🏭 "仓库列表"</li>
-            <li>❓ "帮助"</li>
-          </ul>
-        </div>
-        <div v-for="(msg, index) in messages" :key="index" :class="['message', msg.type]">
-          <div class="message-avatar">
-            {{ msg.type === 'user' ? '👤' : '🤖' }}
-          </div>
-          <div class="message-content">
-            <div class="message-text" v-html="formatMessage(msg.content)"></div>
-            <div class="message-time">{{ msg.time }}</div>
-          </div>
-        </div>
-        <div v-if="loading" class="message bot">
-          <div class="message-avatar">🤖</div>
-          <div class="message-content">
-            <div class="message-text loading">
-              <span>思考中</span>
-              <span class="dot">.</span>
-              <span class="dot">.</span>
-              <span class="dot">.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 输入区域 -->
-      <div class="chat-input">
-        <el-input
-          v-model="inputMessage"
-          placeholder="输入您的问题，按回车发送..."
-          @keyup.enter.native="sendMessage"
-          :disabled="loading"
-          class="input-field"
-        >
-          <i slot="prefix" class="el-input__icon el-icon-chat-line-round"></i>
-        </el-input>
-        <el-button type="primary" @click="sendMessage" :loading="loading" :disabled="!inputMessage.trim()">
-          发送
-        </el-button>
-      </div>
-    </el-card>
+    <!-- 输入区域 -->
+    <div class="chat-input">
+      <el-input
+        v-model="inputMessage"
+        placeholder="输入您的问题，按回车发送..."
+        @keyup.enter.native="sendMessage"
+        :disabled="loading"
+        size="small"
+      >
+        <i slot="prefix" class="el-input__icon el-icon-chat-line-round"></i>
+      </el-input>
+      <el-button type="primary" @click="sendMessage" :loading="loading" :disabled="!inputMessage.trim()" size="small">
+        发送
+      </el-button>
+    </div>
 
     <!-- 快捷问题 -->
     <div class="quick-questions">
@@ -64,7 +57,7 @@
         v-for="q in quickQuestions"
         :key="q"
         @click="askQuestion(q)"
-        class="quick-tag"
+        size="small"
       >
         {{ q }}
       </el-tag>
@@ -95,7 +88,6 @@ export default {
       const message = this.inputMessage.trim()
       if (!message) return
 
-      // 添加用户消息
       this.messages.push({
         type: 'user',
         content: message,
@@ -155,7 +147,6 @@ export default {
     },
 
     formatMessage(content) {
-      // 简单格式化：换行和列表
       return content
         .replace(/\n/g, '<br>')
         .replace(/• /g, '• ')
@@ -168,55 +159,40 @@ export default {
 </script>
 
 <style scoped>
-.ai-assistant {
-  padding: 20px;
-  height: calc(100vh - 140px);
+.ai-assistant-dialog {
   display: flex;
   flex-direction: column;
-}
-
-.chat-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.chat-card >>> .el-card__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  overflow: hidden;
+  height: 420px;
 }
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
-  padding: 20px;
+  padding: 12px;
   background: #f5f7fa;
+  border-radius: 4px 4px 0 0;
 }
 
 .welcome-tip {
   text-align: center;
   color: #909399;
-  padding: 40px 20px;
+  padding: 20px;
   line-height: 2;
 }
 
 .welcome-tip ul {
   list-style: none;
   padding: 0;
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .welcome-tip li {
-  padding: 5px 0;
+  padding: 3px 0;
 }
 
 .message {
   display: flex;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   align-items: flex-start;
 }
 
@@ -225,37 +201,38 @@ export default {
 }
 
 .message-avatar {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
 .message.user .message-avatar {
   background: #409EFF;
   color: white;
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .message.bot .message-avatar {
   background: #67C23A;
   color: white;
-  margin-right: 10px;
+  margin-right: 8px;
 }
 
 .message-content {
-  max-width: 70%;
+  max-width: 75%;
 }
 
 .message-text {
-  padding: 12px 16px;
-  border-radius: 12px;
-  line-height: 1.6;
+  padding: 8px 12px;
+  border-radius: 8px;
+  line-height: 1.5;
   word-break: break-word;
+  font-size: 13px;
 }
 
 .message.user .message-text {
@@ -268,14 +245,14 @@ export default {
   background: white;
   color: #303133;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 .message-time {
-  font-size: 12px;
+  font-size: 11px;
   color: #909399;
-  margin-top: 4px;
-  padding: 0 8px;
+  margin-top: 3px;
+  padding: 0 6px;
 }
 
 .message.user .message-time {
@@ -301,29 +278,18 @@ export default {
 
 .chat-input {
   display: flex;
-  gap: 10px;
-  padding: 15px;
+  gap: 8px;
+  padding: 8px 12px;
   background: white;
   border-top: 1px solid #ebeef5;
 }
 
-.input-field {
-  flex: 1;
-}
-
 .quick-questions {
-  margin-top: 15px;
+  padding: 6px 12px 10px;
   display: flex;
-  gap: 10px;
+  gap: 6px;
   flex-wrap: wrap;
-}
-
-.quick-tag {
-  cursor: pointer;
-  padding: 8px 16px;
-}
-
-.quick-tag:hover {
-  opacity: 0.8;
+  background: white;
+  border-top: 1px solid #ebeef5;
 }
 </style>

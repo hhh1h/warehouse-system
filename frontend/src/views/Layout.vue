@@ -49,16 +49,38 @@
         <router-view @update-title="updateTitle"></router-view>
       </el-main>
     </el-container>
+
+    <!-- AI 智能助手悬浮按钮 -->
+    <div class="ai-float-btn" @click="showAiDialog = true">
+      <i class="el-icon-chat-dot-round"></i>
+    </div>
+
+    <!-- AI 智能助手对话框 -->
+    <el-dialog
+      title="🤖 AI 智能助手"
+      :visible.sync="showAiDialog"
+      width="500px"
+      :close-on-click-modal="true"
+      custom-class="ai-dialog"
+    >
+      <AiAssistant v-if="showAiDialog" />
+    </el-dialog>
   </el-container>
 </template>
 
 <script>
+import AiAssistant from './AiAssistant.vue'
+
 export default {
   name: 'Layout',
+  components: {
+    AiAssistant
+  },
   data() {
     return {
       pageTitle: '首页',
-      user: {}
+      user: {},
+      showAiDialog: false
     }
   },
   computed: {
@@ -127,5 +149,34 @@ export default {
 .main {
   background-color: #f0f2f5;
   padding: 20px;
+}
+
+/* AI 悬浮按钮 */
+.ai-float-btn {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 26px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  z-index: 99999;
+  transition: all 0.3s ease;
+}
+
+.ai-float-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.ai-float-btn:active {
+  transform: scale(0.95);
 }
 </style>
