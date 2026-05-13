@@ -71,7 +71,7 @@ public class JwtUtil {
             secret = System.getenv("JWT_SECRET");
         }
         if (!StringUtils.hasText(secret)) {
-            throw new IllegalStateException("JWT_SECRET未设置，请检查 .env 文件或环境变量");
+            throw new IllegalStateException("JWT_SECRET未设置");
         }
         return secret;
     }

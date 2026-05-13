@@ -25,8 +25,8 @@ export default {
   data() {
     return {
       user: {
-        username: 'admin',
-        password: '123456'
+        username: '',
+        password: ''
       },
       rules: {
         username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
@@ -39,7 +39,10 @@ export default {
       this.$refs.userForm.validate(valid => {
         if (valid) {
           request.post('/user/login', this.user).then(res => {
-            localStorage.setItem('user', JSON.stringify(res.data))
+            const { token, username, role } = res.data
+            localStorage.setItem('token', token)
+            localStorage.setItem('username', username)
+            localStorage.setItem('role', role)
             this.$message.success('登录成功')
             this.$router.push('/')
           }).catch(() => {
