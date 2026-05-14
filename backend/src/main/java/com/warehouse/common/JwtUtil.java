@@ -4,10 +4,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,11 +16,23 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.secret:warehouse-system-jwt-secret-key-2024}")
     private String secret;
 
     @Value("${jwt.expiration:86400000}")
     private Long expiration;
+
+    private SecretKey getSigningKey() {
+        // 确保密钥至少有 256 位（32 字节）
+        byte[] keyBytes = secret.getBytes();
+        if (keyBytes.length < 32) {
+            // 填充到 32 字节
+            byte[] paddedKey = new byte[32];
+            System.arraycopy(keyBytes, 0, paddedKey, 0, Math.min(keyBytes.length, 32));
+            return Keys.hmacShaKeyFor(paddedKey);
+        }
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
@@ -30,30 +43,32 @@ public class JwtUtil {
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(getSigningKey())
                 .compact();
     }
 
-    public static boolean validateToken(String token) {
-        if (!StringUtils.hasText(token)) {
+    public boolean validateToken(String token) {
+        if (!org.springframework.util.StringUtils.hasText(token)) {
             return false;
         }
         try {
-            String jwtSecret = getJwtSecret();
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
+            Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
             throw new RuntimeException("Token已过期");
         } catch (Exception e) {
-            throw new RuntimeException("Token无效");
+            throw new RuntimeException("Token无效: " + e.getMessage());
         }
     }
 
-    public static String getUsernameFromToken(String token) {
+    public String getUsernameFromToken(String token) {
         try {
-            String jwtSecret = getJwtSecret();
-            Claims claims = Jwts.parser()
-                    .setSigningKey(jwtSecret)
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
                     .parseClaimsJws(token)
                     .getBody();
             return claims.getSubject();
@@ -62,17 +77,5 @@ public class JwtUtil {
         } catch (Exception e) {
             throw new RuntimeException("Token无效");
         }
-    }
-
-    private static String getJwtSecret() {
-        // 优先从系统属性获取（.env 加载的），其次从环境变量获取
-        String secret = System.getProperty("JWT_SECRET");
-        if (!StringUtils.hasText(secret)) {
-            secret = System.getenv("JWT_SECRET");
-        }
-        if (!StringUtils.hasText(secret)) {
-            throw new IllegalStateException("JWT_SECRET未设置");
-        }
-        return secret;
     }
 }

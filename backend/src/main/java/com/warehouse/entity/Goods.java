@@ -13,6 +13,7 @@ public class Goods {
     private String name;
     private Integer storage;
     private Integer type;
+    private Integer count;
     private String remark;
     private String barcode;
 }

@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `username` VARCHAR(50) NOT NULL COMMENT '用户名',
-  `password` VARCHAR(50) NOT NULL COMMENT '密码',
+  `password` VARCHAR(255) NOT NULL COMMENT '密码',
   `role` VARCHAR(20) DEFAULT 'user' COMMENT '角色',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
@@ -38,7 +38,8 @@ CREATE TABLE `goods` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(100) NOT NULL COMMENT '商品名称',
   `storage` INT COMMENT '仓库ID',
-  `type` INT DEFAULT 0 COMMENT '库存数量',
+  `type` INT DEFAULT 0 COMMENT '类型',
+  `count` INT DEFAULT 0 COMMENT '库存数量',
   `remark` VARCHAR(500) COMMENT '备注/仓库名称',
   `barcode` VARCHAR(100) COMMENT '商品条码',
   PRIMARY KEY (`id`),
@@ -86,10 +87,11 @@ CREATE TABLE `alert` (
 -- 6. 插入初始数据
 -- =============================================
 
--- 用户数据
+-- 用户数据 (BCrypt 加密密码: 123456)
+-- BCrypt hash for "123456": $2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW
 INSERT INTO `user` (`username`, `password`, `role`) VALUES
-('admin', '123456', 'admin'),
-('user1', '123456', 'user');
+('admin', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'admin'),
+('user1', '$2a$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', 'user');
 
 -- 仓库数据
 INSERT INTO `storage` (`name`, `place`, `remark`) VALUES

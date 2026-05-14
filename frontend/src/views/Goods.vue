@@ -130,6 +130,7 @@
         class="upload-demo"
         drag
         action="/api/excel/import/goods"
+        :headers="{ Authorization: 'Bearer ' + token }"
         :on-success="handleImportSuccess"
         :on-error="handleImportError"
         :before-upload="beforeUpload"
@@ -154,12 +155,12 @@
 <script>
 import request from '@/utils/request'
 import QRCode from 'qrcode'
-import * as XLSX from 'xlsx'
 
 export default {
   name: 'Goods',
   data() {
     return {
+      token: localStorage.getItem('token') || '',
       form: {},
       search: '',
       barcodeSearch: '',
@@ -357,10 +358,16 @@ export default {
       })
     },
     downloadTemplate() {
-      window.location.href = '/api/excel/template/goods'
+      const token = localStorage.getItem('token')
+      const link = document.createElement('a')
+      link.href = '/api/excel/template/goods?token=' + token
+      link.click()
     },
     exportExcel() {
-      window.location.href = '/api/excel/export/goods'
+      const token = localStorage.getItem('token')
+      const link = document.createElement('a')
+      link.href = '/api/excel/export/goods?token=' + token
+      link.click()
       this.$message.success('正在导出Excel文件...')
     },
     beforeUpload(file) {

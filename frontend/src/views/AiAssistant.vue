@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import request from '@/utils/request'
 
 export default {
   name: 'AiAssistant',
@@ -98,20 +98,12 @@ export default {
       this.scrollToBottom()
 
       try {
-        const response = await axios.post('/api/ai/chat', { message })
-        if (response.data.code === 200) {
-          this.messages.push({
-            type: 'bot',
-            content: response.data.data,
-            time: this.formatTime(new Date())
-          })
-        } else {
-          this.messages.push({
-            type: 'bot',
-            content: '抱歉，发生了错误：' + response.data.msg,
-            time: this.formatTime(new Date())
-          })
-        }
+        const response = await request.post('/ai/chat', { message })
+        this.messages.push({
+          type: 'bot',
+          content: response.data,
+          time: this.formatTime(new Date())
+        })
       } catch (error) {
         this.messages.push({
           type: 'bot',

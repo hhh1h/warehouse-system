@@ -1,6 +1,7 @@
 package com.warehouse.config;
 
 import com.warehouse.common.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -18,6 +19,9 @@ public class LoginInterceptor implements HandlerInterceptor {
         "/user/register"
     );
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String uri = request.getRequestURI();
@@ -31,6 +35,11 @@ public class LoginInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
 
         if (!StringUtils.hasText(token)) {
+            // 下载链接可能通过 query parameter 传递 token
+            token = request.getParameter("token");
+        }
+
+        if (!StringUtils.hasText(token)) {
             sendUnauthorized(response, "请先登录");
             return false;
         }
@@ -40,12 +49,12 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         try {
-            if (!JwtUtil.validateToken(token)) {
+            if (!jwtUtil.validateToken(token)) {
                 sendUnauthorized(response, "Token无效或已过期");
                 return false;
             }
 
-            String username = JwtUtil.getUsernameFromToken(token);
+            String username = jwtUtil.getUsernameFromToken(token);
             request.setAttribute("username", username);
 
             return true;

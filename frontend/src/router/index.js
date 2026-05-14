@@ -56,8 +56,20 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  const user = localStorage.getItem('user')
-  if (to.path !== '/login' && !user) {
+  const token = localStorage.getItem('token')
+  
+  // 如果访问登录页且已登录，直接跳转首页
+  if (to.path === '/login') {
+    if (token) {
+      next({ path: '/home', replace: true })
+    } else {
+      next()
+    }
+    return
+  }
+  
+  // 其他页面需要登录
+  if (!token) {
     next('/login')
   } else {
     next()

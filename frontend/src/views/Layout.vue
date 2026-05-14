@@ -89,17 +89,17 @@ export default {
     }
   },
   mounted() {
-    const user = localStorage.getItem('user')
-    if (user) {
-      this.user = JSON.parse(user)
-    }
+    this.user.username = localStorage.getItem('username') || 'Admin'
+    this.user.role = localStorage.getItem('role') || 'admin'
   },
   methods: {
     updateTitle(title) {
       this.pageTitle = title
     },
     logout() {
-      localStorage.removeItem('user')
+      localStorage.removeItem('token')
+      localStorage.removeItem('username')
+      localStorage.removeItem('role')
       this.$router.push('/login')
     }
   }

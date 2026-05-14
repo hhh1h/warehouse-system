@@ -70,7 +70,8 @@ export default {
           search: this.search
         }
       }).then(res => {
-        this.tableData = res.data
+        const data = res.data
+        this.tableData = data.records || data
       })
     },
     save() {

@@ -7,7 +7,6 @@ import com.warehouse.common.Result;
 import com.warehouse.entity.User;
 import com.warehouse.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,9 +26,6 @@ public class UserController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Value("${jwt.expiration:86400000}")
-    private Long jwtExpiration;
 
     @PostMapping
     public Result save(@RequestBody User user) {
